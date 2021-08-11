@@ -12,7 +12,7 @@
 // Composite is a structural DP that allows to create a dynamic hierarchy in a form of a tree where the leafs do the
 // job and the composites have a list of childrens. This is a recursive DP.
 
-// IMPORTANT: When using this DP, it is very important to handle the enclosing circle problem.
+// IMPORTANT NOTE: This implementation is not handling the enclosing circle problem.
 
 using namespace std;
 
@@ -23,12 +23,10 @@ public:
     virtual void operation() const =0;
     virtual void add(Component *c) =0;
     virtual void remove(Component *c) =0;
-
-    // To solve the enclosing circle problem:
     virtual void setParent(Component *c) { parent = c; }
     virtual Component* getParent() const { return parent; }
-    virtual void removeParent() { parent = nullptr; }
     virtual string getDescription() =0;
+    virtual bool IsComposite() const { return false; }
 };
 
 // A leaf have no childrens, and do the job.
@@ -52,22 +50,14 @@ public:
     Composite(string d) : description(d) {}
     virtual void operation() const { for (const Component *c : children) c->operation(); }
     virtual void add(Component *c) {
-
-        // Enclosing circle problem solved!
-        Component *pc = this;
-        while (c != pc->getParent() && pc->getParent() != nullptr) {
-            pc = pc->getParent();
-        }
-        if (pc->getParent() != nullptr) {
-            cout << "Found that " << c->getDescription() << " is an ancestor of " << description << endl;
-            cout << "operation aborted. "<< endl;
-            return;
-        }
         children.push_back(c);
         c->setParent(this);
     }
-    virtual void remove(Component *c) { children.remove(c); c->removeParent(); }
+    virtual void remove(Component *c) {
+        children.remove(c);
+        c->setParent(nullptr); }
     virtual string getDescription() { return description; }
+    bool IsComposite() const { return true; }
 };
 
 
